@@ -1,7 +1,8 @@
 package model;
 
 import java.util.*;
-
+import java.util.Queue;
+import java.util.LinkedList;
 /**
  * Grafo direcionado e ponderado representado por lista de adjacência dupla.
  *
@@ -258,5 +259,71 @@ public class Graph {
         System.out.printf("  Ilícitos:      %,d (%.1f%%)%n", illicit, 100.0 * illicit / nodeCount());
         System.out.printf("  Lícitos:       %,d (%.1f%%)%n", licit, 100.0 * licit / nodeCount());
         System.out.printf("  Desconhecidos: %,d%n", unknown);
+    }
+
+    /**
+     * Verifica se o grafo é fracamente conexo e imprime o resultado no console.
+     *
+     * <p>
+     * Um grafo direcionado é considerado <b>fracamente conexo</b> quando,
+     * ignorando a direção das arestas, existe um caminho entre qualquer
+     * par de nós.
+     * </p>
+     *
+     * <p>
+     * O algoritmo utiliza <b>BFS (Busca em Largura)</b> partindo de um nó
+     * arbitrário, explorando vizinhos de entrada e saída a cada passo.
+     * Ao final, se todos os nós foram visitados, o grafo é conexo.
+     * </p>
+     *
+     * <p><b>Complexidade:</b> O(V + E), onde V é o número de nós e E o de arestas.</p>
+     *
+     * <p><b>Saída esperada:</b></p>
+     * <ul>
+     *   <li>{@code "O grafo É conexo."} — todos os nós foram alcançados</li>
+     *   <li>{@code "O grafo NÃO é conexo."} — existem nós isolados ou componentes separados</li>
+     *   <li>{@code "Grafo vazio."} — nenhum nó foi adicionado ao grafo</li>
+     * </ul>
+     *
+     * @see #getOutNeighbors(long)
+     * @see #getInNeighbors(long)
+     * @see #nodeCount()
+     */
+    public void isConexo() {
+        if (nodes.isEmpty()) {
+            System.out.println("Grafo vazio.");
+            return;
+        }
+
+        HashSet<Long> visited = new HashSet<>();
+        Queue<Long> fila = new LinkedList<>();
+
+        Long inicio = nodes.keySet().iterator().next();
+        fila.add(inicio);
+        visited.add(inicio);
+
+        while (!fila.isEmpty()) {
+            Long atual = fila.poll();
+
+            for (Long vizinho : getOutNeighbors(atual)) {
+                if (!visited.contains(vizinho)) {
+                    visited.add(vizinho);
+                    fila.add(vizinho);
+                }
+            }
+
+            for (Long vizinho : getInNeighbors(atual)) {
+                if (!visited.contains(vizinho)) {
+                    visited.add(vizinho);
+                    fila.add(vizinho);
+                }
+            }
+        }
+
+        if (visited.size() == nodeCount()) {
+            System.out.println("O grafo É conexo.");
+        } else {
+            System.out.println("O grafo NÃO é conexo.");
+        }
     }
 }

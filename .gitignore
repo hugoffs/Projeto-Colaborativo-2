@@ -14,7 +14,8 @@ out/
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
-
+data/filtered_edges.csv.xls
+data/filtered_features.csv.xls
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
