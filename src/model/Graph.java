@@ -326,4 +326,81 @@ public class Graph {
             System.out.println("O grafo NÃO é conexo.");
         }
     }
+
+    /**
+     * Identifica e exibe os componentes fracamente conectados do grafo.
+     *
+     * <p>
+     * Um <b>componente fracamente conectado</b> é um subconjunto máximo de nós
+     * onde existe caminho entre qualquer par, ignorando a direção das arestas.
+     * </p>
+     *
+     * <p>
+     * O algoritmo executa múltiplas <b>BFS (Busca em Largura)</b>, uma para
+     * cada nó ainda não visitado. Cada BFS mapeia um componente completo.
+     * </p>
+     *
+     * <p><b>Complexidade:</b> O(V + E), onde V é o número de nós e E o de arestas.</p>
+     *
+     * <p><b>Saída esperada:</b></p>
+     * <ul>
+     *   <li>Número total de componentes encontrados</li>
+     *   <li>Para cada componente: seu índice e os txIds dos nós que o compõem</li>
+     *   <li>{@code "Grafo vazio."} — nenhum nó foi adicionado ao grafo</li>
+     * </ul>
+     *
+     * @see #getOutNeighbors(long)
+     * @see #getInNeighbors(long)
+     * @see #isConexo()
+     */
+    public void componentesDesconexos() {
+        if (nodes.isEmpty()) {
+            System.out.println("Grafo vazio.");
+            return;
+        }
+
+        HashSet<Long> visited = new HashSet<>();
+        List<Set<Long>> componentes = new ArrayList<>();
+
+        for (Long no : nodes.keySet()) {
+            if (!visited.contains(no)) {
+
+                // Novo componente encontrado
+                Set<Long> componente = new HashSet<>();
+                Queue<Long> fila = new LinkedList<>();
+
+                fila.add(no);
+                visited.add(no);
+                componente.add(no);
+
+                // BFS para mapear o componente inteiro
+                while (!fila.isEmpty()) {
+                    Long atual = fila.poll();
+
+                    for (Long vizinho : getOutNeighbors(atual)) {
+                        if (!visited.contains(vizinho)) {
+                            visited.add(vizinho);
+                            componente.add(vizinho);
+                            fila.add(vizinho);
+                        }
+                    }
+
+                    for (Long vizinho : getInNeighbors(atual)) {
+                        if (!visited.contains(vizinho)) {
+                            visited.add(vizinho);
+                            componente.add(vizinho);
+                            fila.add(vizinho);
+                        }
+                    }
+                }
+
+                componentes.add(componente);
+            }
+        }
+
+        System.out.println("Total de componentes encontrados: " + componentes.size());
+        for (int i = 0; i < componentes.size(); i++) {
+            System.out.println("Componente " + (i + 1) + " — Nós (" + componentes.get(i).size() + "): " + componentes.get(i));
+        }
+    }
 }
