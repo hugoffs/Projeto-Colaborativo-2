@@ -17,5 +17,8 @@ public class Main {
         graph.printStats();
         graph.isConexo();
         graph.componentesDesconexos();
+        graph.isEuleriano();
+
+
     }
 }

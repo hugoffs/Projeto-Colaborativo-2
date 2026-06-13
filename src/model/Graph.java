@@ -403,4 +403,185 @@ public class Graph {
             System.out.println("Componente " + (i + 1) + " — Nós (" + componentes.get(i).size() + "): " + componentes.get(i));
         }
     }
+
+    /**
+     * Verifica se o grafo é Euleriano e, caso seja, imprime
+     * um caminho/circuito Euleriano.
+     *
+     * <p>
+     * Um grafo é considerado Euleriano quando é possível percorrer
+     * todas as arestas exatamente uma vez.
+     * </p>
+     *
+     * <p>
+     * A verificação é realizada pelo método {@link #contarVertices()},
+     * que analisa a paridade do grau de cada vértice.
+     * </p>
+     *
+     * <p>
+     * Se o grafo satisfizer as condições de Eulerianidade,
+     * o método {@link #imprimir_Caminho_Euleriano()} é chamado
+     * para construir e exibir o caminho encontrado.
+     * </p>
+     *
+     * <p><b>Saída esperada:</b></p>
+     * <ul>
+     *   <li>O caminho Euleriano encontrado, quando existir</li>
+     *   <li>{@code "Este Grafo não é Euleriano"} caso contrário</li>
+     * </ul>
+     *
+     * @see #contarVertices()
+     * @see #imprimir_Caminho_Euleriano()
+     */
+    public  void isEuleriano(){
+        if(contarVertices()){
+            imprimir_Caminho_Euleriano();
+            return;
+        }
+        System.out.println("Este Grafo não é Euleriano");
+    }
+
+    /**
+     * Conta a quantidade de vértices com grau par e ímpar
+     * para verificar a existência de um caminho Euleriano.
+     *
+     * <p>
+     * O grau de um vértice é calculado pela soma do número
+     * de arestas de entrada e saída.
+     * </p>
+     *
+     * <p>
+     * Para um grafo tratado como não-direcionado:
+     * </p>
+     * <ul>
+     *   <li>0 vértices ímpares → existe circuito Euleriano</li>
+     *   <li>2 vértices ímpares → existe caminho Euleriano</li>
+     *   <li>Qualquer outro caso → não é Euleriano</li>
+     * </ul>
+     *
+     * <p>
+     * O método também exibe no console a quantidade de
+     * vértices pares e ímpares encontrados.
+     * </p>
+     *
+     * <p><b>Complexidade:</b> O(V), onde V é o número de vértices.</p>
+     *
+     * @return {@code true} se o grafo possuir caminho ou circuito
+     *         Euleriano; {@code false} caso contrário
+     *
+     * @see #getOutDegree(long)
+     * @see #getInDegree(long)
+     */
+    private boolean contarVertices() {
+
+        int verticesPar = 0;
+        int verticesImpares = 0;
+
+        for (Long id : nodes.keySet()) {
+
+            int grau = getOutDegree(id) + getInDegree(id);
+
+            if (grau % 2 == 0) {
+                verticesPar++;
+            } else {
+                verticesImpares++;
+            }
+        }
+
+        System.out.println("Pares: " + verticesPar);
+        System.out.println("Ímpares: " + verticesImpares);
+
+        return verticesImpares == 0 || verticesImpares == 2;
+    }
+
+    /**
+     * Constrói e imprime um caminho Euleriano utilizando
+     * o algoritmo de Hierholzer.
+     *
+     * <p>
+     * O algoritmo percorre as arestas do grafo removendo-as
+     * temporariamente de uma cópia da lista de adjacência,
+     * garantindo que cada aresta seja visitada exatamente
+     * uma vez.
+     * </p>
+     *
+     * <p>
+     * Uma pilha é utilizada para armazenar o caminho atual,
+     * enquanto uma lista registra o caminho Euleriano final.
+     * </p>
+     *
+     * <p>
+     * O grafo original não é alterado, pois é criada uma
+     * cópia das listas de adjacência antes da execução.
+     * </p>
+     *
+     * <p><b>Complexidade:</b> O(E), onde E é o número de arestas.</p>
+     *
+     * <p><b>Saída esperada:</b></p>
+     * <pre>
+     * Caminho Euleriano:
+     * 1 -> 2 -> 3 -> 4 -> 1
+     * </pre>
+     *
+     * @see #getOutNeighbors(long)
+     */
+    private void imprimir_Caminho_Euleriano() {
+
+        Stack<Long> pilha = new Stack<>();
+        List<Long> caminho = new ArrayList<>();
+
+        // escolhe um vértice inicial
+        Long inicio = nodes.keySet().iterator().next();
+
+        // cópia das arestas para não destruir o grafo original
+        Map<Long, List<Long>> temp = new HashMap<>();
+
+        for (Long id : nodes.keySet()) {
+            temp.put(id, new ArrayList<>(getOutNeighbors(id)));
+        }
+
+        pilha.push(inicio);
+
+        while (!pilha.isEmpty()) {
+
+            Long atual = pilha.peek();
+
+            if (temp.get(atual).isEmpty()) {
+                caminho.add(pilha.pop());
+            }else {
+                Long prox = temp.get(atual).remove(0);
+                pilha.push(prox);
+            }
+        }
+
+        Collections.reverse(caminho);
+        System.out.println("Caminho Euleriano:");
+
+        for (int i = 0; i < caminho.size() - 1; i++) {
+            System.out.print(caminho.get(i) + " -> ");
+        }
+
+        System.out.println(caminho.get(caminho.size() - 1));
+    }
+
+
+    /*
+    static void main(){
+        Graph g = new Graph();
+
+        g.addNode(new Transaction(1, 1, new double[0]));
+        g.addNode(new Transaction(2, 1, new double[0]));
+        g.addNode(new Transaction(3, 1, new double[0]));
+        g.addNode(new Transaction(4, 1, new double[0]));
+
+        g.addEdge(1, 2);
+        g.addEdge(2, 3);
+        g.addEdge(3, 4);
+        g.addEdge(4, 1);
+
+
+        g.isEuleriano();
+    }
+
+     */
 }
