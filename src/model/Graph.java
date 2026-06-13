@@ -162,7 +162,7 @@ public class Graph {
      * @param txId identificador do nó
      * @return conjunto de txIds vizinhos (sem duplicatas)
      */
-    public Set<Long> getUndirectedNeighbors(long txId) {
+    private Set<Long> getUndirectedNeighbors(long txId) {
         Set<Long> neighbors = new HashSet<>();
         neighbors.addAll(getOutNeighbors(txId));
         neighbors.addAll(getInNeighbors(txId));
@@ -272,8 +272,14 @@ public class Graph {
      *
      * <p>
      * O algoritmo utiliza <b>BFS (Busca em Largura)</b> partindo de um nó
-     * arbitrário, explorando vizinhos de entrada e saída a cada passo.
-     * Ao final, se todos os nós foram visitados, o grafo é conexo.
+     * arbitrário. A busca percorre os vizinhos obtidos por
+     * {@link #getUndirectedNeighbors(long)}, tratando o grafo como
+     * não-direcionado durante a verificação.
+     * </p>
+     *
+     * <p>
+     * Ao final, se todos os nós tiverem sido visitados pela BFS,
+     * o grafo é considerado conexo.
      * </p>
      *
      * <p><b>Complexidade:</b> O(V + E), onde V é o número de nós e E o de arestas.</p>
@@ -281,44 +287,28 @@ public class Graph {
      * <p><b>Saída esperada:</b></p>
      * <ul>
      *   <li>{@code "O grafo É conexo."} — todos os nós foram alcançados</li>
-     *   <li>{@code "O grafo NÃO é conexo."} — existem nós isolados ou componentes separados</li>
+     *   <li>{@code "O grafo NÃO é conexo."} — existem componentes desconectados</li>
      *   <li>{@code "Grafo vazio."} — nenhum nó foi adicionado ao grafo</li>
      * </ul>
      *
-     * @see #getOutNeighbors(long)
-     * @see #getInNeighbors(long)
+     * @see #bfs(Long, Set)
+     * @see #getUndirectedNeighbors(long)
      * @see #nodeCount()
      */
     public void isConexo() {
+
         if (nodes.isEmpty()) {
             System.out.println("Grafo vazio.");
             return;
         }
 
-        HashSet<Long> visited = new HashSet<>();
-        Queue<Long> fila = new LinkedList<>();
+        Set<Long> visited = new HashSet<>();
 
-        Long inicio = nodes.keySet().iterator().next();
-        fila.add(inicio);
-        visited.add(inicio);
+        Long inicio = nodes.keySet()
+                .iterator()
+                .next();
 
-        while (!fila.isEmpty()) {
-            Long atual = fila.poll();
-
-            for (Long vizinho : getOutNeighbors(atual)) {
-                if (!visited.contains(vizinho)) {
-                    visited.add(vizinho);
-                    fila.add(vizinho);
-                }
-            }
-
-            for (Long vizinho : getInNeighbors(atual)) {
-                if (!visited.contains(vizinho)) {
-                    visited.add(vizinho);
-                    fila.add(vizinho);
-                }
-            }
-        }
+        bfs(inicio, visited);
 
         if (visited.size() == nodeCount()) {
             System.out.println("O grafo É conexo.");
@@ -332,12 +322,19 @@ public class Graph {
      *
      * <p>
      * Um <b>componente fracamente conectado</b> é um subconjunto máximo de nós
-     * onde existe caminho entre qualquer par, ignorando a direção das arestas.
+     * onde existe caminho entre qualquer par de vértices quando a direção
+     * das arestas é ignorada.
      * </p>
      *
      * <p>
-     * O algoritmo executa múltiplas <b>BFS (Busca em Largura)</b>, uma para
-     * cada nó ainda não visitado. Cada BFS mapeia um componente completo.
+     * O algoritmo percorre todos os nós do grafo e executa uma
+     * <b>BFS (Busca em Largura)</b> para cada nó ainda não visitado.
+     * Cada execução da BFS encontra exatamente um componente conexo.
+     * </p>
+     *
+     * <p>
+     * Os componentes encontrados são armazenados e posteriormente
+     * exibidos pelo método {@link #imprimirComponentes(List)}.
      * </p>
      *
      * <p><b>Complexidade:</b> O(V + E), onde V é o número de nós e E o de arestas.</p>
@@ -345,63 +342,120 @@ public class Graph {
      * <p><b>Saída esperada:</b></p>
      * <ul>
      *   <li>Número total de componentes encontrados</li>
-     *   <li>Para cada componente: seu índice e os txIds dos nós que o compõem</li>
+     *   <li>Lista dos vértices pertencentes a cada componente</li>
      *   <li>{@code "Grafo vazio."} — nenhum nó foi adicionado ao grafo</li>
      * </ul>
      *
-     * @see #getOutNeighbors(long)
-     * @see #getInNeighbors(long)
-     * @see #isConexo()
+     * @see #bfs(Long, Set)
+     * @see #imprimirComponentes(List)
+     * @see #getUndirectedNeighbors(long)
      */
     public void componentesDesconexos() {
+
         if (nodes.isEmpty()) {
             System.out.println("Grafo vazio.");
             return;
         }
 
-        HashSet<Long> visited = new HashSet<>();
+        Set<Long> visited = new HashSet<>();
         List<Set<Long>> componentes = new ArrayList<>();
 
         for (Long no : nodes.keySet()) {
+
             if (!visited.contains(no)) {
-
-                // Novo componente encontrado
-                Set<Long> componente = new HashSet<>();
-                Queue<Long> fila = new LinkedList<>();
-
-                fila.add(no);
-                visited.add(no);
-                componente.add(no);
-
-                // BFS para mapear o componente inteiro
-                while (!fila.isEmpty()) {
-                    Long atual = fila.poll();
-
-                    for (Long vizinho : getOutNeighbors(atual)) {
-                        if (!visited.contains(vizinho)) {
-                            visited.add(vizinho);
-                            componente.add(vizinho);
-                            fila.add(vizinho);
-                        }
-                    }
-
-                    for (Long vizinho : getInNeighbors(atual)) {
-                        if (!visited.contains(vizinho)) {
-                            visited.add(vizinho);
-                            componente.add(vizinho);
-                            fila.add(vizinho);
-                        }
-                    }
-                }
-
-                componentes.add(componente);
+                componentes.add(bfs(no, visited));
             }
         }
 
-        System.out.println("Total de componentes encontrados: " + componentes.size());
+        imprimirComponentes(componentes);
+    }
+
+
+    /**
+     * Exibe no console os componentes conexos encontrados.
+     *
+     * <p>
+     * Para cada componente são apresentados:
+     * </p>
+     * <ul>
+     *   <li>O índice do componente</li>
+     *   <li>A quantidade de nós pertencentes ao componente</li>
+     *   <li>A lista de identificadores ({@code txId}) dos nós</li>
+     * </ul>
+     *
+     * @param componentes lista contendo todos os componentes encontrados
+     */
+    private void imprimirComponentes(List<Set<Long>> componentes) {
+        System.out.println(
+                "Total de componentes encontrados: "
+                        + componentes.size());
+
         for (int i = 0; i < componentes.size(); i++) {
-            System.out.println("Componente " + (i + 1) + " — Nós (" + componentes.get(i).size() + "): " + componentes.get(i));
+
+            System.out.println(
+                    "Componente " + (i + 1)
+                            + " — Nós ("
+                            + componentes.get(i).size()
+                            + "): "
+                            + componentes.get(i));
         }
+    }
+
+
+    /**
+     * Visita os vizinhos ainda não explorados de um vértice.
+     *
+     * <p>
+     * Os vizinhos são obtidos através de
+     * {@link #getUndirectedNeighbors(long)}, permitindo que o grafo
+     * seja tratado como não-direcionado durante algoritmos de
+     * conectividade.
+     * </p>
+     *
+     * <p>
+     * Todo vizinho não visitado é marcado como visitado e adicionado
+     * à fila da BFS.
+     * </p>
+     *
+     * @param atual vértice atualmente processado
+     * @param visited conjunto de vértices já visitados
+     * @param fila fila utilizada pela BFS
+     *
+     * @see #getUndirectedNeighbors(long)
+     */
+    private void visitarVizinhos(
+            Long atual,
+            Set<Long> visited,
+            Queue<Long> fila) {
+
+        for (Long vizinho : getUndirectedNeighbors(atual)) {
+
+            if (!visited.contains(vizinho)) {
+                visited.add(vizinho);
+                fila.add(vizinho);
+            }
+        }
+    }
+
+
+    private Set<Long> bfs(Long inicio, Set<Long> visited) {
+
+        Set<Long> componente = new HashSet<>();
+        Queue<Long> fila = new LinkedList<>();
+
+        fila.add(inicio);
+        visited.add(inicio);
+
+        while (!fila.isEmpty()) {
+
+            Long atual = fila.poll();
+
+            componente.add(atual);
+
+            visitarVizinhos(atual, visited, fila);
+        }
+
+        return componente;
     }
 
     /**
@@ -564,24 +618,160 @@ public class Graph {
         System.out.println(caminho.get(caminho.size() - 1));
     }
 
+    /**
+     * Verifica se o grafo contém ciclos e imprime o primeiro ciclo encontrado.
+     *
+     * <p>
+     * O algoritmo utiliza <b>Busca em Profundidade (DFS)</b> para percorrer
+     * o grafo e detectar arestas de retorno (back edges), que caracterizam
+     * a existência de ciclos em grafos direcionados.
+     * </p>
+     *
+     * <p>
+     * Caso um ciclo seja encontrado, sua sequência de vértices é exibida
+     * no console. Caso contrário, é informado que o grafo é acíclico.
+     * </p>
+     *
+     * <p><b>Complexidade:</b> O(V + E), onde V é o número de vértices
+     * e E o número de arestas.</p>
+     *
+     * <p><b>Saída esperada:</b></p>
+     * <ul>
+     *   <li>{@code "Ciclo encontrado:"} seguido dos vértices do ciclo</li>
+     *   <li>{@code "Este Grafo não é Cíclico"} caso nenhum ciclo exista</li>
+     * </ul>
+     *
+     * @see #encontrarCiclo()
+     * @see #dfsCiclo(Long, Set, Set, List)
+     */
+    public void checkingCyclic() {
 
-    /*
-    static void main(){
-        Graph g = new Graph();
+        List<Long> ciclo = encontrarCiclo();
 
-        g.addNode(new Transaction(1, 1, new double[0]));
-        g.addNode(new Transaction(2, 1, new double[0]));
-        g.addNode(new Transaction(3, 1, new double[0]));
-        g.addNode(new Transaction(4, 1, new double[0]));
+        if (ciclo.isEmpty()) {
+            System.out.println("Este Grafo não é Cíclico");
+            return;
+        }
 
-        g.addEdge(1, 2);
-        g.addEdge(2, 3);
-        g.addEdge(3, 4);
-        g.addEdge(4, 1);
+        System.out.println("Ciclo encontrado:");
 
+        for (int i = 0; i < ciclo.size(); i++) {
 
-        g.isEuleriano();
+            System.out.print(ciclo.get(i));
+
+            if (i < ciclo.size() - 1) {
+                System.out.print(" -> ");
+            }
+        }
+
+        System.out.println();
     }
 
+
+    /**
+     * Procura o primeiro ciclo encontrado no grafo.
+     *
+     * <p>
+     * O método percorre todos os vértices ainda não visitados e inicia
+     * uma DFS para cada componente do grafo. Quando um ciclo é encontrado,
+     * a busca é interrompida e o caminho correspondente é retornado.
+     * </p>
+     *
+     * <p>
+     * Caso nenhum ciclo exista, uma lista vazia é retornada.
+     * </p>
+     *
+     * <p><b>Complexidade:</b> O(V + E)</p>
+     *
+     * @return lista contendo os vértices do ciclo encontrado;
+     *         uma lista vazia caso o grafo seja acíclico
+     *
+     * @see #dfsCiclo(Long, Set, Set, List)
      */
+    private List<Long> encontrarCiclo() {
+
+        Set<Long> visited = new HashSet<>();
+        Set<Long> recStack = new HashSet<>();
+        List<Long> caminho = new ArrayList<>();
+
+        for (Long node : nodes.keySet()) {
+
+            if (!visited.contains(node)
+                    && dfsCiclo(node, visited, recStack, caminho)) {
+
+                return caminho;
+            }
+        }
+
+        return Collections.emptyList();
+    }
+
+    /**
+     * Executa uma Busca em Profundidade (DFS) para detectar ciclos.
+     *
+     * <p>
+     * Durante a execução são mantidos dois conjuntos:
+     * </p>
+     * <ul>
+     *   <li>{@code visited} — vértices já visitados pela DFS</li>
+     *   <li>{@code recStack} — vértices presentes na pilha de recursão atual</li>
+     * </ul>
+     *
+     * <p>
+     * Quando um vértice alcança outro que já está presente em
+     * {@code recStack}, um ciclo foi encontrado.
+     * </p>
+     *
+     * <p>
+     * Os vértices visitados são armazenados em {@code caminho},
+     * permitindo reconstruir e exibir o ciclo encontrado.
+     * </p>
+     *
+     * <p><b>Complexidade:</b> O(V + E)</p>
+     *
+     * @param atual vértice atualmente processado
+     * @param visited conjunto de vértices já visitados
+     * @param recStack conjunto de vértices presentes na pilha de recursão
+     * @param caminho caminho percorrido pela DFS
+     *
+     * @return {@code true} se um ciclo foi encontrado;
+     *         {@code false} caso contrário
+     *
+     * @see #getOutNeighbors(long)
+     */
+    private boolean dfsCiclo(Long atual,
+                             Set<Long> visited,
+                             Set<Long> recStack,
+                             List<Long> caminho) {
+
+        visited.add(atual);
+        recStack.add(atual);
+        caminho.add(atual);
+
+        for (Long vizinho : getOutNeighbors(atual)) {
+
+            if (!visited.contains(vizinho)) {
+
+                if (dfsCiclo(vizinho,
+                        visited,
+                        recStack,
+                        caminho)) {
+
+                    return true;
+                }
+
+            } else if (recStack.contains(vizinho)) {
+
+                caminho.add(vizinho);
+                return true;
+            }
+        }
+
+        recStack.remove(atual);
+        caminho.remove(caminho.size() - 1);
+
+        return false;
+    }
+
+
 }

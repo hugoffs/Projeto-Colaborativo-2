@@ -16,9 +16,11 @@ public class Main {
         // -- Estatísticas básicas
         graph.printStats();
         graph.isConexo();
+
         graph.componentesDesconexos();
         graph.isEuleriano();
 
+        graph.checkingCyclic();
 
     }
 }
