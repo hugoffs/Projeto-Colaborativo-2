@@ -34,7 +34,10 @@ public class GeradorMenu {
             long fim = System.currentTimeMillis();
 
             System.out.println();
-            g.printStats();
+            System.out.println("=== Grafo gerado ===");
+            System.out.printf("  Nós:     %,d%n", g.nodeCount());
+            System.out.printf("  Arestas: %,d%n", g.edgeCount());
+            System.out.printf("  Tipo:    %s%n", conexo ? "conexo" : "desconexo");
             System.out.printf("  Gerado em %d ms.%n", fim - inicio);
         } catch (IllegalArgumentException e) {
             System.out.println();
