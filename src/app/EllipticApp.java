@@ -4,6 +4,7 @@ import io.EllipticLoader;
 import io.PajekReader;
 import io.PajekWriter;
 import model.Graph;
+import model.GeradorGrafoAleatorio;
 
 import java.util.Scanner;
 
@@ -43,6 +44,9 @@ public class EllipticApp {
                 case "7" -> checkCyclic();
                 case "8" -> calculateClosenessMetric();
                 case "9" -> calculateBetweennessMetric();
+                case "10" -> checkGerarGrafo();
+                case "11" -> checkprintGrafo();
+                case "12" -> checkWarshall();
                 case "0" -> running = false;
                 default -> System.out.println("  Opção inválida.\n");
             }
@@ -79,6 +83,9 @@ public class EllipticApp {
         System.out.println("  7. Verificar Ciclos");
         System.out.println("  8. Calcular Centralidade de Proximidade");
         System.out.println("  9. Calcular Centralidade de Intermediação");
+        System.out.println(" 10. Gerar Grafo Aleatorio");
+        System.out.println(" 11. Imprimir Grafo");
+        System.out.println(" 12. Algoritmo de Warshall");
         System.out.println("  0. Sair");
         System.out.println("─".repeat(42));
         System.out.print("  Escolha: ");
@@ -169,6 +176,57 @@ public class EllipticApp {
             return;
         System.out.println();
         graph.calculateBetweenness();
+        System.out.println();
+    }
+
+    private void checkGerarGrafo(){
+
+        System.out.println();
+        System.out.println("Digite a Quantidade de Nos: ");
+        System.out.print("  Nos: ");
+        int no = checkNumber(sc);
+        System.out.println("Digite o Numero de aresta: ");
+        System.out.print("  Aresta: ");
+        int aresta = checkNumber(sc);
+        System.out.println("Digite true para Conexo e false para não conexo: ");
+        System.out.print("  Conexo: ");
+        boolean conexo  = checkBoolean(sc);
+
+        graph = GeradorGrafoAleatorio.gerar(no, aresta, conexo);
+    }
+
+    private int checkNumber(Scanner sc) {
+        while (!sc.hasNextInt()) {
+            System.out.println("Erro: digite apenas números inteiros (sem vírgula ou ponto).");
+            if (sc.nextInt() <= 0) {
+                System.out.println(" O numero Tem q ser possitivo e maior que 0");
+            }
+        }
+        return sc.nextInt();
+    }
+
+    private boolean checkBoolean(Scanner sc) {
+        while (!sc.hasNextBoolean()) {
+            System.out.println("Erro: digite apenas true ou false.");
+            sc.next();
+        }
+
+        return sc.nextBoolean();
+    }
+
+    private void checkprintGrafo(){
+        if(noGraph())
+            return;
+        System.out.println();
+        graph.printGrafo();
+        System.out.println();
+    }
+
+    private void checkWarshall(){
+        if(noGraph())
+            return;
+        System.out.println();
+        graph.warshall();
         System.out.println();
     }
 

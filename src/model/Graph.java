@@ -894,4 +894,73 @@ public class Graph {
         System.out.printf("Tempo de execução: %d ms%n", timeMs);
     }
 
+    /**
+     * Matriz de Alcançabilidade
+     */
+    public void warshall() {
+
+        int n = nodeCount();
+
+        List<Long> ids = new ArrayList<>(nodes.keySet());
+        boolean[][] m = new boolean[n][n];
+
+        for (int i = 0; i < n; i++) {
+
+            m[i][i] = true;
+
+            for (Long vizinho : getOutNeighbors(ids.get(i))) {
+                m[i][ids.indexOf(vizinho)] = true;
+            }
+        }
+
+        for (int k = 0; k < n; k++)
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++)
+                    m[i][j] |= m[i][k] && m[k][j];
+
+        System.out.println("Fecho Transitivo:");
+
+        for (boolean[] linha : m) {
+            for (boolean valor : linha) {
+                System.out.print((valor ? 1 : 0) + " ");
+            }
+            System.out.println();
+        }
+    }
+
+    /**
+     * Metodo que imprime o Grafo
+     */
+    public void printGrafo() {
+
+        if (nodes.isEmpty()) {
+            System.out.println("Grafo vazio.");
+            return;
+        }
+
+        System.out.println("=== Grafo ===");
+
+        for (Long id : nodes.keySet()) {
+
+            System.out.print(id + " -> ");
+
+            List<Long> vizinhos = getOutNeighbors(id);
+
+            if (vizinhos.isEmpty()) {
+                System.out.println("[]");
+                continue;
+            }
+
+            for (int i = 0; i < vizinhos.size(); i++) {
+
+                System.out.print(vizinhos.get(i));
+
+                if (i < vizinhos.size() - 1) {
+                    System.out.print(", ");
+                }
+            }
+
+            System.out.println();
+        }
+    }
 }
