@@ -5,7 +5,9 @@ import io.PajekReader;
 import io.PajekWriter;
 import model.Graph;
 import model.GeradorGrafoAleatorio;
+import model.MoneyLaunderingDetector;
 
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -47,6 +49,7 @@ public class EllipticApp {
                 case "10" -> checkGerarGrafo();
                 case "11" -> checkprintGrafo();
                 case "12" -> checkWarshall();
+                case "13" -> runMoneyLaunderingDetection();
                 case "0" -> running = false;
                 default -> System.out.println("  Opção inválida.\n");
             }
@@ -86,6 +89,7 @@ public class EllipticApp {
         System.out.println(" 10. Gerar Grafo Aleatorio");
         System.out.println(" 11. Imprimir Grafo");
         System.out.println(" 12. Algoritmo de Warshall");
+        System.out.println(" 13. Detectar Lavagem de Dinheiro (Propagação de Risco)");
         System.out.println("  0. Sair");
         System.out.println("─".repeat(42));
         System.out.print("  Escolha: ");
@@ -231,6 +235,75 @@ public class EllipticApp {
     }
 
     // ── Utilitários ───────────────────────────────────────────────────────
+
+    private void runMoneyLaunderingDetection() {
+        if (noGraph())
+            return;
+
+        System.out.println();
+        System.out.println("=== Detecção de Lavagem de Dinheiro (Propagação de Risco) ===");
+        System.out.print("Digite o número de iterações/passos de propagação (Padrão: 3): ");
+        String iterInput = sc.nextLine().trim();
+        int iterations = 3;
+        if (!iterInput.isEmpty()) {
+            try {
+                iterations = Integer.parseInt(iterInput);
+                if (iterations <= 0) {
+                    System.out.println("Número inválido, usando padrão de 3.");
+                    iterations = 3;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Entrada inválida, usando padrão de 3.");
+            }
+        }
+
+        System.out.print("Digite o peso de propagação de entrada (alpha entre 0.0 e 1.0) (Padrão: 0.7): ");
+        String alphaInput = sc.nextLine().trim();
+        double alpha = 0.7;
+        if (!alphaInput.isEmpty()) {
+            try {
+                alpha = Double.parseDouble(alphaInput);
+                if (alpha < 0.0 || alpha > 1.0) {
+                    System.out.println("Valor fora do intervalo [0.0, 1.0], usando padrão de 0.7.");
+                    alpha = 0.7;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Entrada inválida, usando padrão de 0.7.");
+            }
+        }
+
+        System.out.print("Quantos resultados suspeitos deseja exibir no máximo? (Padrão: 20): ");
+        String limitInput = sc.nextLine().trim();
+        int limit = 20;
+        if (!limitInput.isEmpty()) {
+            try {
+                limit = Integer.parseInt(limitInput);
+                if (limit <= 0) {
+                    System.out.println("Limite inválido, usando padrão de 20.");
+                    limit = 20;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Entrada inválida, usando padrão de 20.");
+            }
+        }
+
+        System.out.println("\nCalculando scores de risco de lavagem de dinheiro...");
+        long start = System.currentTimeMillis();
+        List<MoneyLaunderingDetector.RiskResult> results =
+                MoneyLaunderingDetector.runPropagation(graph, iterations, alpha);
+        long duration = System.currentTimeMillis() - start;
+
+        System.out.printf("Concluído em %d ms.%n%n", duration);
+
+        long countNonZero = results.stream().filter(r -> r.getRiskScore() > 0.0).count();
+        System.out.printf("Total de transações UNKNOWN com risco detectado (> 0.0): %,d%n", countNonZero);
+
+        System.out.printf("--- Top %d Transações Mais Suspeitas ---%n", Math.min(limit, results.size()));
+        results.stream()
+                .limit(limit)
+                .forEach(System.out::println);
+        System.out.println();
+    }
 
     /** Retorna true (e imprime aviso) se não houver grafo carregado. */
     private boolean noGraph() {
