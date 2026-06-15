@@ -220,8 +220,8 @@ public class Graph {
      *
      * <pre>{@code
      * Graph suspicious = graph.inducedSubgraph(
-     *         t -> t.isIllicit() || graph.getUndirectedNeighbors(t.getTxId())
-     *                 .stream().anyMatch(id -> graph.getNode(id).isIllicit()));
+     * t -> t.isIllicit() || graph.getUndirectedNeighbors(t.getTxId())
+     * .stream().anyMatch(id -> graph.getNode(id).isIllicit()));
      * }</pre>
      *
      * @param filter predicado aplicado a cada {@link Transaction}
@@ -286,9 +286,9 @@ public class Graph {
      *
      * <p><b>Saída esperada:</b></p>
      * <ul>
-     *   <li>{@code "O grafo É conexo."} — todos os nós foram alcançados</li>
-     *   <li>{@code "O grafo NÃO é conexo."} — existem componentes desconectados</li>
-     *   <li>{@code "Grafo vazio."} — nenhum nó foi adicionado ao grafo</li>
+     * <li>{@code "O grafo É conexo."} — todos os nós foram alcançados</li>
+     * <li>{@code "O grafo NÃO é conexo."} — existem componentes desconectados</li>
+     * <li>{@code "Grafo vazio."} — nenhum nó foi adicionado ao grafo</li>
      * </ul>
      *
      * @see #bfs(Long, Set)
@@ -341,9 +341,9 @@ public class Graph {
      *
      * <p><b>Saída esperada:</b></p>
      * <ul>
-     *   <li>Número total de componentes encontrados</li>
-     *   <li>Lista dos vértices pertencentes a cada componente</li>
-     *   <li>{@code "Grafo vazio."} — nenhum nó foi adicionado ao grafo</li>
+     * <li>Número total de componentes encontrados</li>
+     * <li>Lista dos vértices pertencentes a cada componente</li>
+     * <li>{@code "Grafo vazio."} — nenhum nó foi adicionado ao grafo</li>
      * </ul>
      *
      * @see #bfs(Long, Set)
@@ -378,9 +378,9 @@ public class Graph {
      * Para cada componente são apresentados:
      * </p>
      * <ul>
-     *   <li>O índice do componente</li>
-     *   <li>A quantidade de nós pertencentes ao componente</li>
-     *   <li>A lista de identificadores ({@code txId}) dos nós</li>
+     * <li>O índice do componente</li>
+     * <li>A quantidade de nós pertencentes ao componente</li>
+     * <li>A lista de identificadores ({@code txId}) dos nós</li>
      * </ul>
      *
      * @param componentes lista contendo todos os componentes encontrados
@@ -480,8 +480,8 @@ public class Graph {
      *
      * <p><b>Saída esperada:</b></p>
      * <ul>
-     *   <li>O caminho Euleriano encontrado, quando existir</li>
-     *   <li>{@code "Este Grafo não é Euleriano"} caso contrário</li>
+     * <li>O caminho Euleriano encontrado, quando existir</li>
+     * <li>{@code "Este Grafo não é Euleriano"} caso contrário</li>
      * </ul>
      *
      * @see #contarVertices()
@@ -508,9 +508,9 @@ public class Graph {
      * Para um grafo tratado como não-direcionado:
      * </p>
      * <ul>
-     *   <li>0 vértices ímpares → existe circuito Euleriano</li>
-     *   <li>2 vértices ímpares → existe caminho Euleriano</li>
-     *   <li>Qualquer outro caso → não é Euleriano</li>
+     * <li>0 vértices ímpares → existe circuito Euleriano</li>
+     * <li>2 vértices ímpares → existe caminho Euleriano</li>
+     * <li>Qualquer outro caso → não é Euleriano</li>
      * </ul>
      *
      * <p>
@@ -521,7 +521,7 @@ public class Graph {
      * <p><b>Complexidade:</b> O(V), onde V é o número de vértices.</p>
      *
      * @return {@code true} se o grafo possuir caminho ou circuito
-     *         Euleriano; {@code false} caso contrário
+     * Euleriano; {@code false} caso contrário
      *
      * @see #getOutDegree(long)
      * @see #getInDegree(long)
@@ -566,7 +566,7 @@ public class Graph {
      *
      * <p>
      * O grafo original não é alterado, pois é criada uma
-     * cópia das listas de adjacência antes da execução.
+     * cópia das locais de adjacência antes da execução.
      * </p>
      *
      * <p><b>Complexidade:</b> O(E), onde E é o número de arestas.</p>
@@ -637,8 +637,8 @@ public class Graph {
      *
      * <p><b>Saída esperada:</b></p>
      * <ul>
-     *   <li>{@code "Ciclo encontrado:"} seguido dos vértices do ciclo</li>
-     *   <li>{@code "Este Grafo não é Cíclico"} caso nenhum ciclo exista</li>
+     * <li>{@code "Ciclo encontrado:"} seguido dos vértices do ciclo</li>
+     * <li>{@code "Este Grafo não é Cíclico"} caso nenhum ciclo exista</li>
      * </ul>
      *
      * @see #encontrarCiclo()
@@ -684,7 +684,7 @@ public class Graph {
      * <p><b>Complexidade:</b> O(V + E)</p>
      *
      * @return lista contendo os vértices do ciclo encontrado;
-     *         uma lista vazia caso o grafo seja acíclico
+     * uma lista vazia caso o grafo seja acíclico
      *
      * @see #dfsCiclo(Long, Set, Set, List)
      */
@@ -713,8 +713,8 @@ public class Graph {
      * Durante a execução são mantidos dois conjuntos:
      * </p>
      * <ul>
-     *   <li>{@code visited} — vértices já visitados pela DFS</li>
-     *   <li>{@code recStack} — vértices presentes na pilha de recursão atual</li>
+     * <li>{@code visited} — vértices já visitados pela DFS</li>
+     * <li>{@code recStack} — vértices presentes na pilha de recursão atual</li>
      * </ul>
      *
      * <p>
@@ -735,20 +735,20 @@ public class Graph {
      * @param caminho caminho percorrido pela DFS
      *
      * @return {@code true} se um ciclo foi encontrado;
-     *         {@code false} caso contrário
+     * {@code false} caso contrário
      *
      * @see #getOutNeighbors(long)
      */
-    private boolean dfsCiclo(Long atual,
+    private boolean dfsCiclo(Long aktual,
                              Set<Long> visited,
                              Set<Long> recStack,
                              List<Long> caminho) {
 
-        visited.add(atual);
-        recStack.add(atual);
-        caminho.add(atual);
+        visited.add(aktual);
+        recStack.add(aktual);
+        caminho.add(aktual);
 
-        for (Long vizinho : getOutNeighbors(atual)) {
+        for (Long vizinho : getOutNeighbors(aktual)) {
 
             if (!visited.contains(vizinho)) {
 
@@ -767,11 +767,131 @@ public class Graph {
             }
         }
 
-        recStack.remove(atual);
+        recStack.remove(aktual);
         caminho.remove(caminho.size() - 1);
 
         return false;
     }
 
+    /**
+     * Calcula e exibe os nós com maior Centralidade de Proximidade (Closeness).
+     * Usa BFS para calcular as distâncias mínimas.
+     */
+    public void calculateCloseness() {
+        System.out.println("Calculando Centralidade de Proximidade...");
+        long start = System.currentTimeMillis();
+
+        Map<Long, Double> closenessMap = new HashMap<>();
+
+        for (Long startNode : nodes.keySet()) {
+            double sumDistances = 0;
+            int reachableNodes = 0;
+
+            Queue<Long> queue = new LinkedList<>();
+            Map<Long, Integer> distances = new HashMap<>();
+
+            queue.add(startNode);
+            distances.put(startNode, 0);
+
+            while (!queue.isEmpty()) {
+                Long v = queue.poll();
+                int currentDist = distances.get(v);
+
+                for (Long w : getOutNeighbors(v)) {
+                    if (!distances.containsKey(w)) {
+                        distances.put(w, currentDist + 1);
+                        sumDistances += currentDist + 1;
+                        reachableNodes++;
+                        queue.add(w);
+                    }
+                }
+            }
+
+            if (sumDistances > 0) {
+                double closeness = reachableNodes / sumDistances;
+                closenessMap.put(startNode, closeness);
+            } else {
+                closenessMap.put(startNode, 0.0);
+            }
+        }
+
+        printTop5("Proximidade (Closeness)", closenessMap, System.currentTimeMillis() - start);
+    }
+
+    /**
+     * Calcula e exibe os nós com maior Centralidade de Intermediação (Betweenness).
+     * Implementa o Algoritmo de Brandes.
+     */
+    public void calculateBetweenness() {
+        System.out.println("Calculando Centralidade de Intermediação (pode levar alguns segundos)...");
+        long start = System.currentTimeMillis();
+
+        Map<Long, Double> betweennessMap = new HashMap<>();
+        for (Long id : nodes.keySet()) {
+            betweennessMap.put(id, 0.0);
+        }
+
+        for (Long s : nodes.keySet()) {
+            Stack<Long> S = new Stack<>();
+            Map<Long, List<Long>> P = new HashMap<>();
+            Map<Long, Integer> sigma = new HashMap<>();
+            Map<Long, Integer> d = new HashMap<>();
+
+            for (Long v : nodes.keySet()) {
+                P.put(v, new ArrayList<>());
+                sigma.put(v, 0);
+                d.put(v, -1);
+            }
+
+            sigma.put(s, 1);
+            d.put(s, 0);
+            Queue<Long> Q = new LinkedList<>();
+            Q.add(s);
+
+            while (!Q.isEmpty()) {
+                Long v = Q.poll();
+                S.push(v);
+
+                for (Long w : getOutNeighbors(v)) {
+                    if (d.get(w) < 0) {
+                        Q.add(w);
+                        d.put(w, d.get(v) + 1);
+                    }
+                    if (d.get(w) == d.get(v) + 1) {
+                        sigma.put(w, sigma.get(w) + sigma.get(v));
+                        P.get(w).add(v);
+                    }
+                }
+            }
+
+            Map<Long, Double> delta = new HashMap<>();
+            for (Long v : nodes.keySet()) delta.put(v, 0.0);
+
+            while (!S.isEmpty()) {
+                Long w = S.pop();
+                for (Long v : P.get(w)) {
+                    double c = ((double) sigma.get(v) / sigma.get(w)) * (1.0 + delta.get(w));
+                    delta.put(v, delta.get(v) + c);
+                }
+                if (!w.equals(s)) {
+                    betweennessMap.put(w, betweennessMap.get(w) + delta.get(w));
+                }
+            }
+        }
+
+        printTop5("Intermediação (Betweenness)", betweennessMap, System.currentTimeMillis() - start);
+    }
+
+    /**
+     * Helper para imprimir os 5 maiores valores de centralidade.
+     */
+    private void printTop5(String metricName, Map<Long, Double> map, long timeMs) {
+        System.out.println("\n--- Top 5 Nós por " + metricName + " ---");
+        map.entrySet().stream()
+                .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
+                .limit(5)
+                .forEach(e -> System.out.printf("TxID: %d | Valor: %.4f%n", e.getKey(), e.getValue()));
+        System.out.printf("Tempo de execução: %d ms%n", timeMs);
+    }
 
 }

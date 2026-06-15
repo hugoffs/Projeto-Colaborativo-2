@@ -41,6 +41,8 @@ public class EllipticApp {
                 case "5" -> checkConnectivity();
                 case "6" -> checkEulerian();
                 case "7" -> checkCyclic();
+                case "8" -> calculateClosenessMetric();
+                case "9" -> calculateBetweennessMetric();
                 case "0" -> running = false;
                 default -> System.out.println("  Opção inválida.\n");
             }
@@ -75,6 +77,8 @@ public class EllipticApp {
         System.out.println("  5. Conectividade / Componentes");
         System.out.println("  6. Verificar Euleriano");
         System.out.println("  7. Verificar Ciclos");
+        System.out.println("  8. Calcular Centralidade de Proximidade");
+        System.out.println("  9. Calcular Centralidade de Intermediação");
         System.out.println("  0. Sair");
         System.out.println("─".repeat(42));
         System.out.print("  Escolha: ");
@@ -149,6 +153,22 @@ public class EllipticApp {
             return;
         System.out.println();
         graph.checkingCyclic();
+        System.out.println();
+    }
+
+    private void calculateClosenessMetric() {
+        if (noGraph())
+            return;
+        System.out.println();
+        graph.calculateCloseness();
+        System.out.println();
+    }
+
+    private void calculateBetweennessMetric() {
+        if (noGraph())
+            return;
+        System.out.println();
+        graph.calculateBetweenness();
         System.out.println();
     }
 
