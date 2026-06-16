@@ -876,60 +876,66 @@ public class Graph {
         System.out.println("Calculando Centralidade de Intermediação (pode levar alguns segundos)...");
         long start = System.currentTimeMillis();
 
-        Map<Long, Double> betweennessMap = new HashMap<>();
-        for (Long id : nodes.keySet()) {
-            betweennessMap.put(id, 0.0);
+        Map<Long, Double> pontuacao = new HashMap<>();
+        for (Long no : nodes.keySet()) {
+            pontuacao.put(no, 0.0);
         }
 
-        for (Long s : nodes.keySet()) {
-            Stack<Long> stack = new Stack<>();
-            Map<Long, List<Long>> P = new HashMap<>();
-            Map<Long, Integer> sigma = new HashMap<>();
-            Map<Long, Integer> d = new HashMap<>();
+        for (Long fonte : nodes.keySet()) {
+            // ordemVisita: nós na ordem em que o BFS os descobriu (usado na fase reversa)
+            Stack<Long> ordemVisita = new Stack<>();
+            // predecessores: quais nós estão um passo antes de cada nó no caminho mínimo
+            Map<Long, List<Long>> predecessores = new HashMap<>();
+            // caminhosMínimos: quantos caminhos mínimos chegam a cada nó partindo de fonte
+            Map<Long, Integer> caminhosMínimos = new HashMap<>();
+            // distancia: distância mínima de fonte até cada nó (-1 = não visitado)
+            Map<Long, Integer> distancia = new HashMap<>();
 
-            for (Long v : nodes.keySet()) {
-                P.put(v, new ArrayList<>());
-                sigma.put(v, 0);
-                d.put(v, -1);
+            for (Long no : nodes.keySet()) {
+                predecessores.put(no, new ArrayList<>());
+                caminhosMínimos.put(no, 0);
+                distancia.put(no, -1);
             }
 
-            sigma.put(s, 1);
-            d.put(s, 0);
-            Queue<Long> Q = new LinkedList<>();
-            Q.add(s);
+            caminhosMínimos.put(fonte, 1);
+            distancia.put(fonte, 0);
+            Queue<Long> fila = new LinkedList<>();
+            fila.add(fonte);
 
-            while (!Q.isEmpty()) {
-                Long v = Q.poll();
-                stack.push(v);
+            // Fase 1 — BFS: descobre distâncias, caminhos mínimos e predecessores
+            while (!fila.isEmpty()) {
+                Long atual = fila.poll();
+                ordemVisita.push(atual);
 
-                for (Long w : getOutNeighbors(v)) {
-                    if (d.get(w) < 0) {
-                        Q.add(w);
-                        d.put(w, d.get(v) + 1);
+                for (Long vizinho : getOutNeighbors(atual)) {
+                    if (distancia.get(vizinho) < 0) {
+                        fila.add(vizinho);
+                        distancia.put(vizinho, distancia.get(atual) + 1);
                     }
-                    if (d.get(w) == d.get(v) + 1) {
-                        sigma.put(w, sigma.get(w) + sigma.get(v));
-                        P.get(w).add(v);
+                    if (distancia.get(vizinho) == distancia.get(atual) + 1) {
+                        caminhosMínimos.put(vizinho, caminhosMínimos.get(vizinho) + caminhosMínimos.get(atual));
+                        predecessores.get(vizinho).add(atual);
                     }
                 }
             }
 
-            Map<Long, Double> delta = new HashMap<>();
-            for (Long v : nodes.keySet()) delta.put(v, 0.0);
+            // Fase 2 — acumulação reversa: distribui crédito de intermediação
+            Map<Long, Double> credito = new HashMap<>();
+            for (Long no : nodes.keySet()) credito.put(no, 0.0);
 
-            while (!stack.isEmpty()) {
-                Long w = stack.pop();
-                for (Long v : P.get(w)) {
-                    double c = ((double) sigma.get(v) / sigma.get(w)) * (1.0 + delta.get(w));
-                    delta.put(v, delta.get(v) + c);
+            while (!ordemVisita.isEmpty()) {
+                Long no = ordemVisita.pop();
+                for (Long pred : predecessores.get(no)) {
+                    double fracao = ((double) caminhosMínimos.get(pred) / caminhosMínimos.get(no)) * (1.0 + credito.get(no));
+                    credito.put(pred, credito.get(pred) + fracao);
                 }
-                if (!w.equals(s)) {
-                    betweennessMap.put(w, betweennessMap.get(w) + delta.get(w));
+                if (!no.equals(fonte)) {
+                    pontuacao.put(no, pontuacao.get(no) + credito.get(no));
                 }
             }
         }
 
-        printTop5("Intermediação (Betweenness)", betweennessMap, System.currentTimeMillis() - start);
+        printTop5("Intermediação (Betweenness)", pontuacao, System.currentTimeMillis() - start);
     }
 
     /**
