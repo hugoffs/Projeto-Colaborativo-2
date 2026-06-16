@@ -186,36 +186,53 @@ public class EllipticApp {
     private void checkGerarGrafo(){
 
         System.out.println();
-        System.out.println("Digite a Quantidade de Nos: ");
-        System.out.print("  Nos: ");
+        System.out.println("Digite a Quantidade de Nós: ");
+        System.out.print("  Nós: ");
         int no = checkNumber(sc);
-        System.out.println("Digite o Numero de aresta: ");
-        System.out.print("  Aresta: ");
+        System.out.println("Digite o Número de arestas: ");
+        System.out.print("  Arestas: ");
         int aresta = checkNumber(sc);
         System.out.println("Digite true para Conexo e false para não conexo: ");
         System.out.print("  Conexo: ");
         boolean conexo  = checkBoolean(sc);
 
-        graph = GeradorGrafoAleatorio.gerar(no, aresta, conexo);
+        try {
+            graph = GeradorGrafoAleatorio.gerar(no, aresta, conexo);
+            ok(String.format("Grafo gerado: %,d nós · %,d arestas (%s).",
+                    graph.nodeCount(), graph.edgeCount(), conexo ? "conexo" : "desconexo"));
+        } catch (IllegalArgumentException e) {
+            err("Não foi possível gerar o grafo: " + e.getMessage());
+        }
     }
 
     private int checkNumber(Scanner sc) {
-        while (!sc.hasNextInt()) {
-            System.out.println("Erro: digite apenas números inteiros (sem vírgula ou ponto).");
-            if (sc.nextInt() <= 0) {
-                System.out.println(" O numero Tem q ser possitivo e maior que 0");
+        while (true) {
+            String entrada = sc.nextLine().trim();
+            try {
+                int valor = Integer.parseInt(entrada);
+                if (valor <= 0) {
+                    System.out.print("  O número deve ser positivo e maior que 0. Tente de novo: ");
+                    continue;
+                }
+                return valor;
+            } catch (NumberFormatException e) {
+                System.out.print("  Erro: digite apenas números inteiros. Tente de novo: ");
             }
         }
-        return sc.nextInt();
     }
 
     private boolean checkBoolean(Scanner sc) {
-        while (!sc.hasNextBoolean()) {
-            System.out.println("Erro: digite apenas true ou false.");
-            sc.next();
+        while (true) {
+            String entrada = sc.nextLine().trim().toLowerCase();
+            if (entrada.equals("true") || entrada.equals("t") || entrada.equals("s") || entrada.equals("sim")) {
+                return true;
+            }
+            if (entrada.equals("false") || entrada.equals("f") || entrada.equals("n")
+                    || entrada.equals("nao") || entrada.equals("não")) {
+                return false;
+            }
+            System.out.print("  Erro: digite true ou false. Tente de novo: ");
         }
-
-        return sc.nextBoolean();
     }
 
     private void checkprintGrafo(){

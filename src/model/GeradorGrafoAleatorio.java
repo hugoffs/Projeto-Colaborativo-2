@@ -8,11 +8,6 @@ import java.util.Set;
  * Gerador de grafos aleatórios.
  *
  * <p>
- * Atende o requisito do trabalho: criar um grafo a partir de três entradas —
- * número de nós, número de arestas e se o grafo deve ser conexo ou não.
- * </p>
- *
- * <p>
  * O grafo gerado é <b>direcionado simples</b>: não há auto-ligações (um nó
  * ligado a ele mesmo) nem arestas direcionadas repetidas (mesmo {@code from→to}).
  * Os nós são numerados de {@code 1} a {@code N} e recebem o rótulo

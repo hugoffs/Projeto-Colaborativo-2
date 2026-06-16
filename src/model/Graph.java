@@ -459,163 +459,224 @@ public class Graph {
     }
 
     /**
-     * Verifica se o grafo é Euleriano e, caso seja, imprime
-     * um caminho/circuito Euleriano.
+     * Verifica se o grafo é Euleriano (tratando-o como não-direcionado,
+     * de forma consistente com a conexidade fraca usada no resto do projeto)
+     * e, quando for, imprime um caminho/circuito Euleriano.
      *
-     * <p>
-     * Um grafo é considerado Euleriano quando é possível percorrer
-     * todas as arestas exatamente uma vez.
-     * </p>
-     *
-     * <p>
-     * A verificação é realizada pelo método {@link #contarVertices()},
-     * que analisa a paridade do grau de cada vértice.
-     * </p>
-     *
-     * <p>
-     * Se o grafo satisfizer as condições de Eulerianidade,
-     * o método {@link #imprimir_Caminho_Euleriano()} é chamado
-     * para construir e exibir o caminho encontrado.
-     * </p>
-     *
-     * <p><b>Saída esperada:</b></p>
+     * <p>Condições verificadas:</p>
      * <ul>
-     * <li>O caminho Euleriano encontrado, quando existir</li>
-     * <li>{@code "Este Grafo não é Euleriano"} caso contrário</li>
+     * <li><b>Conexidade:</b> todas as arestas devem pertencer a um único
+     * componente (vértices isolados são ignorados) — verificada por
+     * {@link #arestasNoMesmoComponente()}.</li>
+     * <li><b>Paridade:</b> 0 vértices de grau ímpar → circuito Euleriano;
+     * exatamente 2 → caminho Euleriano (semi-Euleriano);
+     * qualquer outro número → não é Euleriano.</li>
      * </ul>
      *
-     * @see #contarVertices()
+     * <p>Sem a checagem de conexidade um grafo desconexo com todos os graus
+     * pares seria classificado, incorretamente, como Euleriano.</p>
+     *
+     * @see #arestasNoMesmoComponente()
      * @see #imprimir_Caminho_Euleriano()
      */
-    public  void isEuleriano(){
-        if(contarVertices()){
-            imprimir_Caminho_Euleriano();
+    public void isEuleriano() {
+        if (nodes.isEmpty()) {
+            System.out.println("Grafo vazio.");
             return;
         }
-        System.out.println("Este Grafo não é Euleriano");
+
+        int impares = contarVerticesImpares();
+
+        if (!arestasNoMesmoComponente()) {
+            System.out.println("Este Grafo NÃO é Euleriano (as arestas estão em componentes separados).");
+            return;
+        }
+
+        if (impares == 0) {
+            System.out.println("O grafo É Euleriano (possui circuito Euleriano).");
+            imprimir_Caminho_Euleriano();
+        } else if (impares == 2) {
+            System.out.println("O grafo é SEMI-Euleriano (possui caminho Euleriano, mas não circuito).");
+            imprimir_Caminho_Euleriano();
+        } else {
+            System.out.println("Este Grafo NÃO é Euleriano (" + impares + " vértices de grau ímpar).");
+        }
     }
 
     /**
-     * Conta a quantidade de vértices com grau par e ímpar
-     * para verificar a existência de um caminho Euleriano.
-     *
-     * <p>
-     * O grau de um vértice é calculado pela soma do número
-     * de arestas de entrada e saída.
-     * </p>
-     *
-     * <p>
-     * Para um grafo tratado como não-direcionado:
-     * </p>
-     * <ul>
-     * <li>0 vértices ímpares → existe circuito Euleriano</li>
-     * <li>2 vértices ímpares → existe caminho Euleriano</li>
-     * <li>Qualquer outro caso → não é Euleriano</li>
-     * </ul>
-     *
-     * <p>
-     * O método também exibe no console a quantidade de
-     * vértices pares e ímpares encontrados.
-     * </p>
+     * Conta os vértices de grau ímpar, tratando o grafo como não-direcionado
+     * (grau = arestas de entrada + saída). Também imprime no console a
+     * quantidade de vértices pares e ímpares.
      *
      * <p><b>Complexidade:</b> O(V), onde V é o número de vértices.</p>
      *
-     * @return {@code true} se o grafo possuir caminho ou circuito
-     * Euleriano; {@code false} caso contrário
-     *
-     * @see #getOutDegree(long)
-     * @see #getInDegree(long)
+     * @return número de vértices com grau ímpar
      */
-    private boolean contarVertices() {
+    private int contarVerticesImpares() {
 
-        int verticesPar = 0;
-        int verticesImpares = 0;
+        int pares = 0;
+        int impares = 0;
 
         for (Long id : nodes.keySet()) {
 
             int grau = getOutDegree(id) + getInDegree(id);
 
             if (grau % 2 == 0) {
-                verticesPar++;
+                pares++;
             } else {
-                verticesImpares++;
+                impares++;
             }
         }
 
-        System.out.println("Pares: " + verticesPar);
-        System.out.println("Ímpares: " + verticesImpares);
-
-        return verticesImpares == 0 || verticesImpares == 2;
+        System.out.println("Pares: " + pares);
+        System.out.println("Ímpares: " + impares);
+        return impares;
     }
 
     /**
-     * Constrói e imprime um caminho Euleriano utilizando
-     * o algoritmo de Hierholzer.
+     * Verifica se todas as arestas pertencem a um único componente
+     * (fracamente conexo). Vértices isolados (grau 0) são ignorados, pois
+     * não impedem a existência de um caminho/circuito Euleriano.
+     *
+     * <p>Reusa a BFS não-direcionada de {@link #bfs(Long, Set)}.</p>
+     *
+     * <p><b>Complexidade:</b> O(V + E).</p>
+     *
+     * @return {@code true} se todos os vértices com grau > 0 estiverem
+     * no mesmo componente
+     */
+    private boolean arestasNoMesmoComponente() {
+
+        Long inicio = null;
+        for (Long id : nodes.keySet()) {
+            if (getOutDegree(id) + getInDegree(id) > 0) {
+                inicio = id;
+                break;
+            }
+        }
+
+        if (inicio == null) {
+            return true; // sem arestas: circuito vazio é trivialmente Euleriano
+        }
+
+        Set<Long> visited = new HashSet<>();
+        bfs(inicio, visited);
+
+        for (Long id : nodes.keySet()) {
+            if (getOutDegree(id) + getInDegree(id) > 0 && !visited.contains(id)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Escolhe o vértice inicial do percurso Euleriano: um vértice de grau
+     * ímpar quando o grafo é semi-Euleriano (início obrigatório do caminho),
+     * ou qualquer vértice com arestas quando é um circuito.
+     *
+     * @return o vértice inicial, ou {@code null} se não houver arestas
+     */
+    private Long inicioEuleriano() {
+
+        Long comAresta = null;
+        for (Long id : nodes.keySet()) {
+            int grau = getOutDegree(id) + getInDegree(id);
+            if (grau % 2 != 0) {
+                return id;
+            }
+            if (grau > 0 && comAresta == null) {
+                comAresta = id;
+            }
+        }
+        return comAresta;
+    }
+
+    /**
+     * Constrói e imprime um caminho/circuito Euleriano com o algoritmo de
+     * Hierholzer, tratando o grafo como <b>não-direcionado</b>: cada aresta
+     * é percorrida exatamente uma vez, independentemente da direção
+     * (consistente com {@link #contarVerticesImpares()}).
      *
      * <p>
-     * O algoritmo percorre as arestas do grafo removendo-as
-     * temporariamente de uma cópia da lista de adjacência,
-     * garantindo que cada aresta seja visitada exatamente
-     * uma vez.
+     * Cada arco recebe um id único; o vetor {@code usada} garante que nenhum
+     * seja percorrido duas vezes, e um ponteiro de avanço por vértice mantém
+     * o algoritmo em O(V + E). O grafo original não é alterado.
      * </p>
      *
-     * <p>
-     * Uma pilha é utilizada para armazenar o caminho atual,
-     * enquanto uma lista registra o caminho Euleriano final.
-     * </p>
+     * <p>Só deve ser chamado após {@link #isEuleriano()} confirmar as
+     * condições de Eulerianidade.</p>
      *
-     * <p>
-     * O grafo original não é alterado, pois é criada uma
-     * cópia das locais de adjacência antes da execução.
-     * </p>
-     *
-     * <p><b>Complexidade:</b> O(E), onde E é o número de arestas.</p>
+     * <p><b>Complexidade:</b> O(V + E), onde E é o número de arestas.</p>
      *
      * <p><b>Saída esperada:</b></p>
      * <pre>
      * Caminho Euleriano:
-     * 1 -> 2 -> 3 -> 4 -> 1
+     * 1 -> 2 -> 3 -> 1
      * </pre>
-     *
-     * @see #getOutNeighbors(long)
      */
     private void imprimir_Caminho_Euleriano() {
 
-        Stack<Long> pilha = new Stack<>();
-        List<Long> caminho = new ArrayList<>();
-
-        // escolhe um vértice inicial
-        Long inicio = nodes.keySet().iterator().next();
-
-        // cópia das arestas para não destruir o grafo original
-        Map<Long, List<Long>> temp = new HashMap<>();
-
-        for (Long id : nodes.keySet()) {
-            temp.put(id, new ArrayList<>(getOutNeighbors(id)));
+        int m = edgeCount();
+        if (m == 0) {
+            System.out.println("Caminho Euleriano: (grafo sem arestas)");
+            return;
         }
 
-        pilha.push(inicio);
+        // Adjacência não-direcionada: cada arco vira uma aresta com id único.
+        Map<Long, List<long[]>> adj = new HashMap<>(); // vértice -> [{vizinho, edgeId}]
+        for (Long id : nodes.keySet()) {
+            adj.put(id, new ArrayList<>());
+        }
+        List<long[]> arcos = getEdgeList();
+        for (int e = 0; e < arcos.size(); e++) {
+            long u = arcos.get(e)[0];
+            long v = arcos.get(e)[1];
+            adj.get(u).add(new long[] { v, e });
+            adj.get(v).add(new long[] { u, e });
+        }
+
+        boolean[] usada = new boolean[m];
+        Map<Long, Integer> ponteiro = new HashMap<>();
+        for (Long id : nodes.keySet()) {
+            ponteiro.put(id, 0);
+        }
+
+        Deque<Long> pilha = new ArrayDeque<>();
+        List<Long> caminho = new ArrayList<>();
+        pilha.push(inicioEuleriano());
 
         while (!pilha.isEmpty()) {
 
-            Long atual = pilha.peek();
+            Long u = pilha.peek();
+            List<long[]> incidentes = adj.get(u);
 
-            if (temp.get(atual).isEmpty()) {
+            int i = ponteiro.get(u);
+            while (i < incidentes.size() && usada[(int) incidentes.get(i)[1]]) {
+                i++;
+            }
+            ponteiro.put(u, i);
+
+            if (i == incidentes.size()) {
                 caminho.add(pilha.pop());
-            }else {
-                Long prox = temp.get(atual).remove(0);
-                pilha.push(prox);
+            } else {
+                long[] aresta = incidentes.get(i);
+                usada[(int) aresta[1]] = true;
+                pilha.push(aresta[0]);
             }
         }
 
         Collections.reverse(caminho);
+
         System.out.println("Caminho Euleriano:");
-
-        for (int i = 0; i < caminho.size() - 1; i++) {
-            System.out.print(caminho.get(i) + " -> ");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < caminho.size(); i++) {
+            sb.append(caminho.get(i));
+            if (i < caminho.size() - 1) {
+                sb.append(" -> ");
+            }
         }
-
-        System.out.println(caminho.get(caminho.size() - 1));
+        System.out.println(sb);
     }
 
     /**
@@ -642,7 +703,7 @@ public class Graph {
      * </ul>
      *
      * @see #encontrarCiclo()
-     * @see #dfsCiclo(Long, Set, Set, List)
+     * @see #reconstruirCiclo(Long, Long, Map)
      */
     public void checkingCyclic() {
 
@@ -669,37 +730,68 @@ public class Graph {
 
 
     /**
-     * Procura o primeiro ciclo encontrado no grafo.
+     * Procura o primeiro ciclo do grafo usando DFS <b>iterativa</b>
+     * (pilha explícita), evitando o risco de {@code StackOverflowError}
+     * em grafos grandes como o Elliptic (~19k nós).
      *
      * <p>
-     * O método percorre todos os vértices ainda não visitados e inicia
-     * uma DFS para cada componente do grafo. Quando um ciclo é encontrado,
-     * a busca é interrompida e o caminho correspondente é retornado.
-     * </p>
-     *
-     * <p>
-     * Caso nenhum ciclo exista, uma lista vazia é retornada.
+     * Usa o esquema de cores branco/cinza/preto: uma aresta que aponta para
+     * um vértice <b>cinza</b> (ainda na pilha de recursão) é uma back edge e
+     * caracteriza um ciclo em grafo direcionado. O mapa de pais permite
+     * reconstruir exatamente o ciclo encontrado.
      * </p>
      *
      * <p><b>Complexidade:</b> O(V + E)</p>
      *
-     * @return lista contendo os vértices do ciclo encontrado;
+     * @return os vértices do ciclo no formato {@code v -> ... -> u -> v};
      * uma lista vazia caso o grafo seja acíclico
      *
-     * @see #dfsCiclo(Long, Set, Set, List)
+     * @see #reconstruirCiclo(Long, Long, Map)
      */
     private List<Long> encontrarCiclo() {
 
-        Set<Long> visited = new HashSet<>();
-        Set<Long> recStack = new HashSet<>();
-        List<Long> caminho = new ArrayList<>();
+        final int BRANCO = 0, CINZA = 1, PRETO = 2;
+        Map<Long, Integer> cor = new HashMap<>(); // ausente = BRANCO
+        Map<Long, Long> pai = new HashMap<>();
 
-        for (Long node : nodes.keySet()) {
+        for (Long raiz : nodes.keySet()) {
 
-            if (!visited.contains(node)
-                    && dfsCiclo(node, visited, recStack, caminho)) {
+            if (cor.getOrDefault(raiz, BRANCO) != BRANCO) {
+                continue;
+            }
 
-                return caminho;
+            Deque<Long> pilha = new ArrayDeque<>();
+            Deque<Iterator<Long>> iteradores = new ArrayDeque<>();
+
+            cor.put(raiz, CINZA);
+            pilha.push(raiz);
+            iteradores.push(getOutNeighbors(raiz).iterator());
+
+            while (!pilha.isEmpty()) {
+
+                Long u = pilha.peek();
+                Iterator<Long> it = iteradores.peek();
+
+                if (it.hasNext()) {
+
+                    Long v = it.next();
+                    int corV = cor.getOrDefault(v, BRANCO);
+
+                    if (corV == BRANCO) {
+                        cor.put(v, CINZA);
+                        pai.put(v, u);
+                        pilha.push(v);
+                        iteradores.push(getOutNeighbors(v).iterator());
+                    } else if (corV == CINZA) {
+                        return reconstruirCiclo(v, u, pai); // back edge u -> v
+                    }
+                    // corV == PRETO: vértice já finalizado, ignora
+
+                } else {
+                    cor.put(u, PRETO);
+                    pilha.pop();
+                    iteradores.pop();
+                }
             }
         }
 
@@ -707,70 +799,28 @@ public class Graph {
     }
 
     /**
-     * Executa uma Busca em Profundidade (DFS) para detectar ciclos.
+     * Reconstrói o ciclo a partir da back edge {@code u -> v}, subindo pelo
+     * mapa de pais de {@code u} até {@code v}.
      *
-     * <p>
-     * Durante a execução são mantidos dois conjuntos:
-     * </p>
-     * <ul>
-     * <li>{@code visited} — vértices já visitados pela DFS</li>
-     * <li>{@code recStack} — vértices presentes na pilha de recursão atual</li>
-     * </ul>
-     *
-     * <p>
-     * Quando um vértice alcança outro que já está presente em
-     * {@code recStack}, um ciclo foi encontrado.
-     * </p>
-     *
-     * <p>
-     * Os vértices visitados são armazenados em {@code caminho},
-     * permitindo reconstruir e exibir o ciclo encontrado.
-     * </p>
-     *
-     * <p><b>Complexidade:</b> O(V + E)</p>
-     *
-     * @param atual vértice atualmente processado
-     * @param visited conjunto de vértices já visitados
-     * @param recStack conjunto de vértices presentes na pilha de recursão
-     * @param caminho caminho percorrido pela DFS
-     *
-     * @return {@code true} se um ciclo foi encontrado;
-     * {@code false} caso contrário
-     *
-     * @see #getOutNeighbors(long)
+     * @param v   vértice cinza alcançado pela back edge (fecha o ciclo)
+     * @param u   vértice de onde partiu a back edge
+     * @param pai mapa filho → pai construído durante a DFS
+     * @return o ciclo no formato {@code v -> ... -> u -> v}
      */
-    private boolean dfsCiclo(Long atual,
-                             Set<Long> visited,
-                             Set<Long> recStack,
-                             List<Long> caminho) {
+    private List<Long> reconstruirCiclo(Long v, Long u, Map<Long, Long> pai) {
 
-        visited.add(atual);
-        recStack.add(atual);
-        caminho.add(atual);
+        List<Long> ciclo = new ArrayList<>();
 
-        for (Long vizinho : getOutNeighbors(atual)) {
-
-            if (!visited.contains(vizinho)) {
-
-                if (dfsCiclo(vizinho,
-                        visited,
-                        recStack,
-                        caminho)) {
-
-                    return true;
-                }
-
-            } else if (recStack.contains(vizinho)) {
-
-                caminho.add(vizinho);
-                return true;
-            }
+        Long atual = u;
+        ciclo.add(atual);
+        while (atual != null && !atual.equals(v)) {
+            atual = pai.get(atual);
+            ciclo.add(atual);
         }
 
-        recStack.remove(atual);
-        caminho.remove(caminho.size() - 1);
-
-        return false;
+        Collections.reverse(ciclo); // agora: v -> ... -> u
+        ciclo.add(v);               // fecha o ciclo: v -> ... -> u -> v
+        return ciclo;
     }
 
     /**
@@ -832,7 +882,7 @@ public class Graph {
         }
 
         for (Long s : nodes.keySet()) {
-            Stack<Long> S = new Stack<>();
+            Stack<Long> stack = new Stack<>();
             Map<Long, List<Long>> P = new HashMap<>();
             Map<Long, Integer> sigma = new HashMap<>();
             Map<Long, Integer> d = new HashMap<>();
@@ -850,7 +900,7 @@ public class Graph {
 
             while (!Q.isEmpty()) {
                 Long v = Q.poll();
-                S.push(v);
+                stack.push(v);
 
                 for (Long w : getOutNeighbors(v)) {
                     if (d.get(w) < 0) {
@@ -867,8 +917,8 @@ public class Graph {
             Map<Long, Double> delta = new HashMap<>();
             for (Long v : nodes.keySet()) delta.put(v, 0.0);
 
-            while (!S.isEmpty()) {
-                Long w = S.pop();
+            while (!stack.isEmpty()) {
+                Long w = stack.pop();
                 for (Long v : P.get(w)) {
                     double c = ((double) sigma.get(v) / sigma.get(w)) * (1.0 + delta.get(w));
                     delta.put(v, delta.get(v) + c);
@@ -895,37 +945,70 @@ public class Graph {
     }
 
     /**
-     * Matriz de Alcançabilidade
+     * Matriz de Alcançabilidade (fecho transitivo) via algoritmo de Warshall.
+     *
+     * <p>
+     * Destinada a grafos <b>pequenos</b>: a matriz é O(n²) em memória e o
+     * algoritmo é O(n³) em tempo, inviável no grafo Elliptic completo
+     * (~19k nós exigiriam ~365 milhões de booleans e ~10¹³ operações). Por
+     * isso há um limite de segurança.
+     * </p>
      */
     public void warshall() {
 
         int n = nodeCount();
+        if (n == 0) {
+            System.out.println("Grafo vazio.");
+            return;
+        }
 
+        final int LIMITE = 200;
+        if (n > LIMITE) {
+            System.out.printf(
+                    "Warshall desabilitado: %,d nós exigiriam uma matriz %d×%d e O(n³) operações.%n",
+                    n, n, n);
+            System.out.printf("Use um grafo com até %d nós (ex.: gere um pela opção 10).%n", LIMITE);
+            return;
+        }
+
+        // Índice O(1) por nó (evita indexOf O(n) dentro do laço).
         List<Long> ids = new ArrayList<>(nodes.keySet());
-        boolean[][] m = new boolean[n][n];
+        Map<Long, Integer> indice = new HashMap<>();
+        for (int i = 0; i < n; i++) {
+            indice.put(ids.get(i), i);
+        }
 
+        boolean[][] m = new boolean[n][n];
         for (int i = 0; i < n; i++) {
 
             m[i][i] = true;
 
             for (Long vizinho : getOutNeighbors(ids.get(i))) {
-                m[i][ids.indexOf(vizinho)] = true;
+                m[i][indice.get(vizinho)] = true;
             }
         }
 
-        for (int k = 0; k < n; k++)
-            for (int i = 0; i < n; i++)
-                for (int j = 0; j < n; j++)
-                    m[i][j] |= m[i][k] && m[k][j];
+        for (int k = 0; k < n; k++) {
+            for (int i = 0; i < n; i++) {
+                if (m[i][k]) {
+                    for (int j = 0; j < n; j++) {
+                        if (m[k][j]) {
+                            m[i][j] = true;
+                        }
+                    }
+                }
+            }
+        }
 
         System.out.println("Fecho Transitivo:");
-
+        StringBuilder sb = new StringBuilder();
         for (boolean[] linha : m) {
             for (boolean valor : linha) {
-                System.out.print((valor ? 1 : 0) + " ");
+                sb.append(valor ? '1' : '0').append(' ');
             }
-            System.out.println();
+            sb.append(System.lineSeparator());
         }
+        System.out.print(sb);
     }
 
     /**
