@@ -739,16 +739,16 @@ public class Graph {
      *
      * @see #getOutNeighbors(long)
      */
-    private boolean dfsCiclo(Long aktual,
+    private boolean dfsCiclo(Long atual,
                              Set<Long> visited,
                              Set<Long> recStack,
                              List<Long> caminho) {
 
-        visited.add(aktual);
-        recStack.add(aktual);
-        caminho.add(aktual);
+        visited.add(atual);
+        recStack.add(atual);
+        caminho.add(atual);
 
-        for (Long vizinho : getOutNeighbors(aktual)) {
+        for (Long vizinho : getOutNeighbors(atual)) {
 
             if (!visited.contains(vizinho)) {
 
@@ -767,7 +767,7 @@ public class Graph {
             }
         }
 
-        recStack.remove(aktual);
+        recStack.remove(atual);
         caminho.remove(caminho.size() - 1);
 
         return false;
