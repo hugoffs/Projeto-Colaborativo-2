@@ -61,16 +61,16 @@ public class PajekReader {
      */
     public static Graph read(String filePath) throws IOException {
         Graph graph = new Graph();
-        java.util.Map<Integer, Long> indexToTxId = new java.util.HashMap<>();
+        java.util.Map<Integer, Long> indexToTxId = new java.util.HashMap<>(); // indice Pajek -> txId
 
-        Section currentSection = Section.NONE;
-        boolean directed = true;
+        Section currentSection = Section.NONE; // seção atual
+        boolean directed = true; // grafo direcionado
 
         try (BufferedReader br = Files.newBufferedReader(Path.of(filePath))) {
             String line;
             while ((line = br.readLine()) != null) {
                 line = line.strip();
-                if (line.isEmpty() || line.startsWith("%"))
+                if (line.isEmpty() || line.startsWith("%")) // iggnora linhas vazias e comentarios
                     continue;
 
                 String lower = line.toLowerCase();

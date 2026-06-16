@@ -86,7 +86,7 @@ public class EllipticLoader {
      * @throws IOException se o arquivo não existir ou estiver vazio
      */
     private static Map<Long, Transaction.Label> readClasses(String path) throws IOException {
-        Map<Long, Transaction.Label> map = new HashMap<>();
+        Map<Long, Transaction.Label> map = new HashMap<>(); // txId -> Label
 
         try (BufferedReader br = Files.newBufferedReader(Path.of(path))) {
             String header = br.readLine();

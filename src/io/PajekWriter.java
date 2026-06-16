@@ -66,10 +66,10 @@ public class PajekWriter {
     public static void write(Graph graph, String filePath) throws IOException {
 
         // ── 1. Mapeamento txId → índice Pajek (1-based) ───────────────────
-        Map<Long, Integer> indexMap = new HashMap<>();
+        Map<Long, Integer> indexMap = new HashMap<>(); // txId -> indice Pajek
         int idx = 1;
-        for (Transaction t : graph.getNodes()) {
-            indexMap.put(t.getTxId(), idx++);
+        for (Transaction t : graph.getNodes()) { // para cada transação
+            indexMap.put(t.getTxId(), idx++); // mapeia o txId para um índice
         }
 
         // ── 2. Escrita do arquivo ─────────────────────────────────────────
@@ -80,11 +80,11 @@ public class PajekWriter {
             bw.newLine();
 
             // Ordena por índice Pajek para saída determinística
-            List<Transaction> sorted = new ArrayList<>(graph.getNodes());
-            sorted.sort(Comparator.comparingInt(t -> indexMap.get(t.getTxId())));
+            List<Transaction> sorted = new ArrayList<>(graph.getNodes()); // cria uma lista com todos os nós
+            sorted.sort(Comparator.comparingInt(t -> indexMap.get(t.getTxId()))); // ordena por índice Pajek
 
-            for (Transaction t : sorted) {
-                int pajekIdx = indexMap.get(t.getTxId());
+            for (Transaction t : sorted) { // para cada transação
+                int pajekIdx = indexMap.get(t.getTxId()); // obtém o índice Pajek
                 // Label codifica txId, timeStep e classe para reconstrução fiel
                 String label = t.getTxId() + "|" + t.getTimeStep() + "|" + t.getLabel().name();
                 bw.write(pajekIdx + " \"" + label + "\"");
@@ -95,10 +95,10 @@ public class PajekWriter {
             bw.write("*Arcs");
             bw.newLine();
 
-            for (long[] edge : graph.getEdgeList()) {
-                int fromIdx = indexMap.get(edge[0]);
-                int toIdx = indexMap.get(edge[1]);
-                bw.write(fromIdx + " " + toIdx + " 1.0");
+            for (long[] edge : graph.getEdgeList()) { // para cada aresta
+                int fromIdx = indexMap.get(edge[0]); // obtém o índice Pajek da origem
+                int toIdx = indexMap.get(edge[1]); // obtém o índice Pajek do destino
+                bw.write(fromIdx + " " + toIdx + " 1.0"); // escreve a aresta no formato Pajek
                 bw.newLine();
             }
         }
